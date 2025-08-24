@@ -1,0 +1,271 @@
+{
+	"name": "Transaction_Data_Creation",
+	"properties": {
+		"activities": [
+			{
+				"name": "generateTransactionData",
+				"type": "AzureFunctionActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"functionName": "transactionData?name=Transaction",
+					"method": "GET"
+				},
+				"linkedServiceName": {
+					"referenceName": "Client_Transaction",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "List_TransactionData_Files",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "generateTransactionData",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Data_Generation_Transaction_Source",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "ParquetReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Iterate_Transactions",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "List_TransactionData_Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('List_TransactionData_Files').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Lookup_Transactions",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderStoredProcedureName": "[transaction].[Search_Name]",
+									"storedProcedureParameters": {
+										"Name": {
+											"type": "String",
+											"value": {
+												"value": "@item().name",
+												"type": "Expression"
+											}
+										}
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "Data_Generation_Audit_Transaction",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "TransactionName",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Lookup_Transactions",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Transaction",
+								"value": {
+									"value": "@item().name",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "If transaction file is absent",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "TransactionName",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@bool(activity('Lookup_Transactions').output.firstRow.Output)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "3 - Transaction",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "ParquetSource",
+												"storeSettings": {
+													"type": "AzureBlobStorageReadSettings",
+													"recursive": true,
+													"wildcardFileName": {
+														"value": "@variables('Transaction')",
+														"type": "Expression"
+													},
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "ParquetReadSettings"
+												}
+											},
+											"sink": {
+												"type": "AzureSqlSink",
+												"writeBehavior": "insert",
+												"sqlWriterUseTableLock": false
+											},
+											"enableStaging": false,
+											"parallelCopies": 1,
+											"enableSkipIncompatibleRow": true,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "Data_Generation_Transaction_Source",
+												"type": "DatasetReference"
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "Data_Generation_Transaction_Sink",
+												"type": "DatasetReference"
+											}
+										]
+									},
+									{
+										"name": "Update_Transaction_Audit",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "3 - Transaction",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": "[transaction].[Update_Audit_Table]",
+											"storedProcedureParameters": {
+												"Name": {
+													"value": {
+														"value": "@variables('Transaction')",
+														"type": "Expression"
+													},
+													"type": "String"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "Client_AuditData",
+											"type": "LinkedServiceReference"
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"Transaction": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Data_Generation"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-08-23T08:22:28Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

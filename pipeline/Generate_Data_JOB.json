@@ -1,0 +1,52 @@
+{
+	"name": "Generate_Data_JOB",
+	"properties": {
+		"activities": [
+			{
+				"name": "Generate_Customer-Product-Data",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Product-Customer_Data_Creation",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Generate_Transaction-Data",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Generate_Customer-Product-Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Transaction_Data_Creation",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "Data_Generation"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-08-23T07:34:14Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

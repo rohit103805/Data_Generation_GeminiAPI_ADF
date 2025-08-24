@@ -1,0 +1,12 @@
+{
+	"name": "Client_Transaction",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureFunction",
+		"typeProperties": {
+			"functionAppUrl": "https://generatetransactiondata.azurewebsites.net",
+			"authentication": "Anonymous"
+		}
+	}
+}

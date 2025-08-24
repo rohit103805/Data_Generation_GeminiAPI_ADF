@@ -1,0 +1,20 @@
+{
+	"name": "Data_Generation_Customer_Source",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Client_BlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "dim-customer"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

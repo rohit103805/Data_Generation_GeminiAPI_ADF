@@ -1,0 +1,26 @@
+{
+	"name": "Data_Generation_Audit_Transaction",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Client_AuditData",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Name",
+				"type": "varchar"
+			},
+			{
+				"name": "Loaded",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "transaction",
+			"table": "audit_transaction"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

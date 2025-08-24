@@ -1,0 +1,49 @@
+{
+	"name": "Data_Generation_Transaction_Source",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Client_BlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "fact-transaction"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "CustomerID",
+				"type": "INT64"
+			},
+			{
+				"name": "ProductID",
+				"type": "INT64"
+			},
+			{
+				"name": "Quantity",
+				"type": "INT64"
+			},
+			{
+				"name": "Cost",
+				"type": "UTF8"
+			},
+			{
+				"name": "Discount",
+				"type": "INT64"
+			},
+			{
+				"name": "FinalAmount",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "BillDate&Time",
+				"type": "UTF8"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

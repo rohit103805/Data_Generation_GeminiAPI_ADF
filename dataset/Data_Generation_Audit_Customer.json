@@ -1,0 +1,26 @@
+{
+	"name": "Data_Generation_Audit_Customer",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Client_AuditData",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "NAME",
+				"type": "varchar"
+			},
+			{
+				"name": "LOADED",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "customer",
+			"table": "audit_customer"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

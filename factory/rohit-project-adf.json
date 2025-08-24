@@ -1,0 +1,9 @@
+{
+	"name": "rohit-project-adf",
+	"location": "northeurope",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "a077035d-b886-4363-b3f8-953cb5afe49f",
+		"tenantId": "6561066d-8a1e-4dfe-a58f-0c94e9dc438b"
+	}
+}
